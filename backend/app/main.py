@@ -9,10 +9,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.migrations.section_sheet import backfill_section_sheet
 from app.routers import ROUTERS
 from app.store import store
 
 app = FastAPI(title="地质勘探数据管理平台", version="1.0.0")
+
+# 启动时执行历史剖面补数：缺图幅号的补挂图幅，原编号、原 id 不动；按数据状态幂等
+backfill_section_sheet()
 
 app.add_middleware(
     CORSMiddleware,

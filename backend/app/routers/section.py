@@ -1,18 +1,20 @@
-"""剖面编录接口：维护实测剖面，覆盖完成实测、提交制图、申请验收等动作。"""
-from __future__ import annotations
+"""剖面编录接口：维护实测剖面，覆盖完成实测、提交制图、申请验收等动作。
 
-from typing import Any
+图属相符性导出已迁移到「批次打包台」，见 /api/section-packing。
+"""
+from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
 
 from app.schemas import ActionResult, EntryPayload, PageResult
 from app.services.section import SectionService
+from app.services.section_packing import batch_packing_service
 
 router = APIRouter(prefix="/api/section", tags=["剖面编录"])
 
 service = SectionService()
 
-LIST_FIELDS = ["剖面编号", "剖面名称", "剖面长度", "起点坐标", "终点坐标", "编录日期", "编录人员", "剖面状态"]
+LIST_FIELDS = ["剖面编号", "剖面名称", "剖面长度", "起点坐标", "终点坐标", "编录日期", "编录人员", "剖面状态", "图幅编号"]
 STATUSES = ["实测中", "已编录", "已制图", "已验收"]
 
 
@@ -32,11 +34,15 @@ def list_entries(
 
 @router.get("/{entry_id}", response_model=dict)
 def get_entry(entry_id: int) -> dict:
-    """读取单条实测剖面明细；不存在时给出可读的错误说明。"""
+    """读取单条实测剖面明细；同时带上打包台核验信息，保证详情与导出同源。
+
+    不存在时给出可读的错误说明。
+    """
     entry = service.get_entry(entry_id)
     if entry is None:
         raise HTTPException(status_code=404, detail=f"实测剖面 {entry_id} 不存在或已归档")
-    return entry
+    preflight = batch_packing_service.preflight_section(entry)
+    return {**entry, "packing": preflight}
 
 
 @router.post("", response_model=ActionResult)
@@ -56,10 +62,3 @@ def run_action(entry_id: int, payload: EntryPayload) -> ActionResult:
     if entry is None:
         return ActionResult(ok=False, message=message)
     return ActionResult(ok=True, message=message, entry=entry)
-
-
-@router.get("/export")
-def export_entries() -> dict[str, Any]:
-    """导出剖面编录清单：返回当前过滤条件下的全量数据。"""
-    items, total = service.list_entries(page=1, size=10000)
-    return {"module": "section", "total": total, "items": items}

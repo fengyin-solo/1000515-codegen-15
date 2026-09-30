@@ -23,9 +23,14 @@ class SectionService:
     ) -> tuple[list[dict[str, Any]], int]:
         rows = store.rows(MODULE)
         if keyword:
-            rows = [row for row in rows if keyword in str(row.get("剖面编号", ""))]
+            rows = [
+                row for row in rows
+                if keyword in str(row.get("剖面编号", "")) or keyword in str(row.get("剖面名称", ""))
+            ]
         if status:
             rows = [row for row in rows if row.get("status") == status]
+        # 按 id 稳定排序，分页期间顺序不漂移
+        rows = sorted(rows, key=lambda row: int(row.get("id", 0)))
         total = len(rows)
         start = max(page - 1, 0) * size
         return rows[start:start + size], total

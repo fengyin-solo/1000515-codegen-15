@@ -15,6 +15,7 @@ const SampleRegistry = () => import('@/views/sample_registry/index.vue')
 const Equipment = () => import('@/views/equipment/index.vue')
 const Hydro = () => import('@/views/hydro/index.vue')
 const Section = () => import('@/views/section/index.vue')
+const SectionPacking = () => import('@/views/section_packing/index.vue')
 const GeologicalReport = () => import('@/views/geological_report/index.vue')
 const Remote = () => import('@/views/remote/index.vue')
 const Mineral = () => import('@/views/mineral/index.vue')
@@ -38,6 +39,7 @@ const router = createRouter({
     { path: '/equipment', name: 'equipment', component: Equipment },
     { path: '/hydro', name: 'hydro', component: Hydro },
     { path: '/section', name: 'section', component: Section },
+    { path: '/section-packing', name: 'section-packing', component: SectionPacking },
     { path: '/geological_report', name: 'geological_report', component: GeologicalReport },
     { path: '/remote', name: 'remote', component: Remote },
     { path: '/mineral', name: 'mineral', component: Mineral },
