@@ -21,7 +21,8 @@ class SectionService:
         page: int = 1,
         size: int = 20,
     ) -> tuple[list[dict[str, Any]], int]:
-        rows = store.rows(MODULE)
+        # 统一按 id 升序，保证大批量异步导出时翻页清单稳定、不随插入顺序漂移。
+        rows = sorted(store.rows(MODULE), key=lambda row: int(row.get("id", 0)))
         if keyword:
             rows = [row for row in rows if keyword in str(row.get("剖面编号", ""))]
         if status:

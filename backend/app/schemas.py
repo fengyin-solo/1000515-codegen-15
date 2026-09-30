@@ -28,6 +28,20 @@ class EntryPayload(BaseModel):
     remark: str | None = None
 
 
+class BatchExportRequest(BaseModel):
+    """批次打包台创建导出批次的入参。
+
+    勾选导出时给 section_ids；按当前过滤口径整批导出时给 keyword/status。
+    批次创建时会把剖面冻结成有序清单，后续翻页与出包都按它走。
+    """
+
+    section_ids: list[int] | None = None
+    keyword: str | None = None
+    status: str | None = None
+    operator: str = "值班员"
+
+
+
 
 class BoreholeEntry(BaseModel):
     """钻孔明细结构。"""

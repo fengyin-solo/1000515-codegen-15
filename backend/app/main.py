@@ -10,6 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.routers import ROUTERS
+from app.services.section_pack import batch_pack_service
 from app.store import store
 
 app = FastAPI(title="地质勘探数据管理平台", version="1.0.0")
@@ -24,6 +25,17 @@ app.add_middleware(
 
 for module in ROUTERS:
     app.include_router(module.router)
+
+
+@app.on_event("startup")
+def resume_export_batches() -> None:
+    """启动即引导：补历史图幅号（在 service 初始化时已做），并把中断的导出批次接回队列。
+
+    连接中断/服务重启后，排队中或导出中的批次按原批次继续，已出包剖面不重做。
+    """
+    batch_pack_service.recover_interrupted()
+    # 大批量后台工作线程在首次入队时启动；这里确保线程就位。
+    batch_pack_service._ensure_worker()
 
 
 @app.get("/api/health")
